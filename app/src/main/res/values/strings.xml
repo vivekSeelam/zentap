@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">zentap</string>
+    <string name="accessibility_service_label">Zentap Guard</string>
+    <string name="accessibility_service_description">Detects when guarded apps open and shows a reflection overlay before granting access.</string>
+</resources>
