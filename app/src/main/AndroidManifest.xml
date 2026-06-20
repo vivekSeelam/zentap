@@ -4,6 +4,8 @@
 
     <!-- Required to draw the blocking overlay on top of other apps -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- Required for the Anthropic API call -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"

@@ -55,14 +55,15 @@ class GuardAccessibilityService : AccessibilityService() {
 
     private fun showOverlay() {
         overlayManager.show(
-            onGrant = {
-                // User accepted — start the session window and schedule re-block
-                sessionGrantedUntilMs = System.currentTimeMillis() + SESSION_WINDOW_MS
+            onGrant = { minutes ->
+                // AI-determined grant duration (5–15 min), then re-block
+                val ms = minutes * 60 * 1_000L
+                sessionGrantedUntilMs = System.currentTimeMillis() + ms
                 handler.removeCallbacks(reblockRunnable)
-                handler.postDelayed(reblockRunnable, SESSION_WINDOW_MS)
+                handler.postDelayed(reblockRunnable, ms)
             },
             onNotNow = {
-                // User declined — send them home; no session started, no timer
+                // User tapped "Not now" — send them home; no timer started
                 performGlobalAction(GLOBAL_ACTION_HOME)
             }
         )
@@ -70,6 +71,5 @@ class GuardAccessibilityService : AccessibilityService() {
 
     companion object {
         const val GUARDED_PACKAGE = "com.instagram.android"
-        const val SESSION_WINDOW_MS = 5 * 60 * 1_000L
     }
 }

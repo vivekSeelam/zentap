@@ -4,49 +4,90 @@
     android:layout_height="match_parent"
     android:background="#CC0000">
 
+    <!-- Input state: shown by default -->
     <LinearLayout
-        android:layout_width="280dp"
+        android:id="@+id/layout_input"
+        android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:orientation="vertical"
-        android:padding="32dp">
+        android:padding="28dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="12dp"
-            android:text="STOP"
+            android:layout_marginBottom="8dp"
+            android:text="PAUSE"
             android:textColor="#FFFFFF"
-            android:textSize="52sp"
+            android:textSize="48sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="40dp"
+            android:layout_marginBottom="20dp"
             android:gravity="center"
-            android:text="Why are you opening Instagram right now?"
+            android:text="Why do you want to open Instagram right now?"
             android:textColor="#FFFFFF"
-            android:textSize="18sp" />
+            android:textSize="17sp" />
+
+        <EditText
+            android:id="@+id/et_reason"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="#33FFFFFF"
+            android:hint="Type your reason…"
+            android:inputType="textMultiLine|textCapSentences"
+            android:minLines="2"
+            android:padding="12dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#99FFFFFF"
+            android:textSize="15sp" />
 
         <Button
-            android:id="@+id/btn_grant"
+            android:id="@+id/btn_send"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:paddingHorizontal="32dp"
-            android:text="Grant 5 minutes" />
+            android:text="Ask the guardian" />
 
         <TextView
             android:id="@+id/tv_not_now"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
             android:padding="8dp"
             android:text="Not now"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp" />
+
+    </LinearLayout>
+
+    <!-- Loading state: shown while API call is in progress -->
+    <LinearLayout
+        android:id="@+id/layout_loading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:indeterminateTint="#FFFFFF" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Thinking…"
             android:textColor="#FFFFFF"
             android:textSize="16sp" />
 
