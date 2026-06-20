@@ -9,42 +9,66 @@ import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 
-data class GuardDecision(val decision: String, val minutes: Int, val message: String)
+data class ChatMessage(val role: String, val content: String)
+data class GuardDecision(val decision: String, val minutes: Int, val reply: String)
 
 object AnthropicClient {
 
     private const val ENDPOINT = "https://api.anthropic.com/v1/messages"
     private const val MODEL = "claude-haiku-4-5"
-    private const val MAX_TOKENS = 200
+    private const val MAX_TOKENS = 300
 
     private val SYSTEM_PROMPT = """
-        You are a mindfulness guardian embedded in a phone app that intercepts impulsive scrolling.
-        The user is about to open Instagram. They provided a reason (or none).
+        You are GuardianMom — the user's loving but absolutely unfiltered phone guardian.
+        Think of a mom who is warm and cares deeply, but uses crude on-the-face humour and roasts with love. You're funny, sarcastic, real.
 
-        Evaluate strictly and respond with ONLY valid JSON — no other text:
+        Your mission: figure out if they ACTUALLY need Instagram right now or are just doom-scrolling.
 
-        GRANT if the reason is specific and intentional (e.g. "texting a friend", "posting a photo"):
-        {"decision":"grant","minutes":5,"message":"One warm sentence acknowledging their purpose."}
+        Personality rules:
+        - 2-3 sentences MAX. Punchy. No lectures.
+        - Crude, funny, sarcastic — but loving underneath. Never mean.
+        - Use casual language, emojis welcome.
+        - Challenge vague reasons. Reward specific honest ones.
+        - You can be CONVINCED if they get more specific after being challenged.
 
-        REDIRECT if the reason is vague, impulsive, or absent (e.g. "just checking", "bored", ""):
-        {"decision":"redirect","minutes":0,"message":"One warm sentence gently naming the impulse."}
+        Decision rules:
+        - ALWAYS use "pending" for the first reply — have a conversation first!
+        - Vague or no reason ("just checking", "bored", blank): roast lovingly, stay pending.
+        - After 3+ exchanges of vague answers: redirect with a funny line.
+        - Specific, time-bound, real reason ("texting Priya about tonight", "posting the photo I just took"): grant.
+        - minutes for grant: 5–15 based on how long the task sounds.
 
-        For grant: minutes = 5–15 based on how time-bounded the task sounds.
-        Keep message under 20 words.
+        Respond with ONLY valid JSON on a single line, no markdown, no extra text:
+        {"decision":"pending","minutes":0,"reply":"your witty reply here"}
+        {"decision":"grant","minutes":5,"reply":"Okay fine, you win. 5 minutes. Clock's ticking."}
+        {"decision":"redirect","minutes":0,"reply":"funny loving rejection here"}
     """.trimIndent()
 
-    suspend fun evaluate(reason: String): GuardDecision = withContext(Dispatchers.IO) {
+    // Opening lines shown instantly — no API call needed for the first message
+    val OPENING_LINES = listOf(
+        "Baby, Instagram AGAIN? 😩 Okay give me one good reason and I'll think about it.",
+        "Oh sweetie, we're doing this dance again huh? Tell mama what's SO important.",
+        "Instagram? Already? What happened to 'just 5 minutes' last time? 👀 Convince me.",
+        "Oh no no no. You don't get in for free anymore. What's the reason this time, love? 🤨",
+        "Honey I love you but your thumbs are on thin ice. What do you actually need in there?",
+    )
+
+    suspend fun chat(history: List<ChatMessage>): GuardDecision = withContext(Dispatchers.IO) {
         try {
+            val messages = JSONArray().apply {
+                history.forEach { msg ->
+                    put(JSONObject().apply {
+                        put("role", msg.role)
+                        put("content", msg.content)
+                    })
+                }
+            }
+
             val body = JSONObject().apply {
                 put("model", MODEL)
                 put("max_tokens", MAX_TOKENS)
                 put("system", SYSTEM_PROMPT)
-                put("messages", JSONArray().put(
-                    JSONObject().apply {
-                        put("role", "user")
-                        put("content", reason.ifBlank { "(no reason given)" })
-                    }
-                ))
+                put("messages", messages)
             }.toString()
 
             val conn = (URL(ENDPOINT).openConnection() as HttpURLConnection).apply {
@@ -59,12 +83,12 @@ object AnthropicClient {
 
             OutputStreamWriter(conn.outputStream).use { it.write(body) }
 
-            val responseCode = conn.responseCode
-            val responseText = if (responseCode in 200..299) {
+            val code = conn.responseCode
+            val responseText = if (code in 200..299) {
                 conn.inputStream.bufferedReader().readText()
             } else {
-                val error = conn.errorStream?.bufferedReader()?.readText() ?: "HTTP $responseCode"
-                throw Exception("API error $responseCode: $error")
+                val err = conn.errorStream?.bufferedReader()?.readText() ?: "HTTP $code"
+                throw Exception("API error $code: $err")
             }
 
             val text = JSONObject(responseText)
@@ -73,20 +97,21 @@ object AnthropicClient {
                 .getString("text")
                 .trim()
 
-            // Strip markdown code fences if the model wrapped the JSON
+            // Strip markdown fences if model wrapped the JSON
             val start = text.indexOf('{')
             val end = text.lastIndexOf('}')
             val cleaned = if (start != -1 && end != -1) text.substring(start, end + 1) else text
+
             val json = JSONObject(cleaned)
             GuardDecision(
                 decision = json.getString("decision"),
                 minutes  = json.optInt("minutes", 5),
-                message  = json.getString("message")
-            ).also { Log.d("AnthropicClient", "decision=${it.decision} minutes=${it.minutes} message=${it.message}") }
+                reply    = json.getString("reply")
+            ).also { Log.d("AnthropicClient", "decision=${it.decision} reply=${it.reply}") }
+
         } catch (e: Exception) {
             Log.e("AnthropicClient", "API call failed", e)
-            // Fail open — if the API is unreachable the app should not block the user
-            GuardDecision("grant", 5, "Guardian unavailable. You have 5 minutes.")
+            GuardDecision("grant", 5, "Ugh, my brain glitched. Fine, go in. 5 minutes only!")
         }
     }
 }
