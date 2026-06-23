@@ -1,5 +1,6 @@
 package com.example.zentap
 
+import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -66,7 +67,7 @@ object AnthropicClient {
         "Honey I love you but your thumbs are on thin ice. What do you actually need in there?",
     )
 
-    suspend fun chat(history: List<ChatMessage>): GuardDecision = withContext(Dispatchers.IO) {
+    suspend fun chat(context: Context, history: List<ChatMessage>): GuardDecision = withContext(Dispatchers.IO) {
         try {
             val messages = JSONArray().apply {
                 history.forEach { msg ->
@@ -87,7 +88,7 @@ object AnthropicClient {
             val conn = (URL(ENDPOINT).openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
                 setRequestProperty("content-type", "application/json")
-                setRequestProperty("x-api-key", BuildConfig.ANTHROPIC_API_KEY)
+                setRequestProperty("x-api-key", ApiKeyStore.getKey(context))
                 setRequestProperty("anthropic-version", "2023-06-01")
                 doOutput = true
                 connectTimeout = 8_000

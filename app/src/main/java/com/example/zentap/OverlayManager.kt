@@ -68,7 +68,7 @@ class OverlayManager(private val context: Context) {
             pbLoading.visibility = View.VISIBLE
 
             scope.launch {
-                val response = AnthropicClient.chat(history)
+                val response = AnthropicClient.chat(context, history)
                 // Add assistant reply to history so subsequent turns have full context
                 history.add(ChatMessage("assistant", response.reply))
 

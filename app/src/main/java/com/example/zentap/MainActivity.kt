@@ -10,9 +10,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.zentap.ui.theme.ZentapTheme
 
@@ -22,6 +27,7 @@ class MainActivity : ComponentActivity() {
     // refreshes automatically when the user returns from the Settings screens.
     private var canDrawOverlays by mutableStateOf(false)
     private var accessibilityEnabled by mutableStateOf(false)
+    private var apiKeyConfigured by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,8 +37,8 @@ class MainActivity : ComponentActivity() {
                 SetupScreen(
                     canDrawOverlays = canDrawOverlays,
                     accessibilityEnabled = accessibilityEnabled,
+                    apiKeyConfigured = apiKeyConfigured,
                     onGrantOverlay = {
-                        // Deep-links directly to the "Display over other apps" page for this app
                         startActivity(
                             Intent(
                                 Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -42,6 +48,10 @@ class MainActivity : ComponentActivity() {
                     },
                     onGrantAccessibility = {
                         startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                    },
+                    onSaveApiKey = { key ->
+                        ApiKeyStore.saveKey(this, key)
+                        apiKeyConfigured = true
                     },
                     onViewLog = {
                         startActivity(Intent(this, LogActivity::class.java))
@@ -56,6 +66,7 @@ class MainActivity : ComponentActivity() {
         // Re-check every time the user comes back from a Settings screen
         canDrawOverlays = Settings.canDrawOverlays(this)
         accessibilityEnabled = isAccessibilityEnabled()
+        apiKeyConfigured = ApiKeyStore.isConfigured(this)
     }
 
     private fun isAccessibilityEnabled(): Boolean {
@@ -86,11 +97,13 @@ class MainActivity : ComponentActivity() {
 private fun SetupScreen(
     canDrawOverlays: Boolean,
     accessibilityEnabled: Boolean,
+    apiKeyConfigured: Boolean,
     onGrantOverlay: () -> Unit,
     onGrantAccessibility: () -> Unit,
+    onSaveApiKey: (String) -> Unit,
     onViewLog: () -> Unit,
 ) {
-    val allGranted = canDrawOverlays && accessibilityEnabled
+    val allReady = canDrawOverlays && accessibilityEnabled && apiKeyConfigured
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Column(
@@ -104,7 +117,7 @@ private fun SetupScreen(
             Text("Zentap Guardian", style = MaterialTheme.typography.headlineMedium)
             Spacer(Modifier.height(6.dp))
             Text(
-                text = "Grant both permissions below, then open Instagram.",
+                text = "Complete the three steps below, then open Instagram.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -122,8 +135,10 @@ private fun SetupScreen(
                 granted = accessibilityEnabled,
                 onGrant = onGrantAccessibility,
             )
+            HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp))
+            ApiKeySection(isConfigured = apiKeyConfigured, onSave = onSaveApiKey)
 
-            if (allGranted) {
+            if (allReady) {
                 Spacer(Modifier.height(40.dp))
                 Text(
                     text = "All set! Open Instagram to see the overlay.",
@@ -137,6 +152,53 @@ private fun SetupScreen(
                 Text("View access log →")
             }
         }
+    }
+}
+
+@Composable
+private fun ApiKeySection(isConfigured: Boolean, onSave: (String) -> Unit) {
+    var editing by remember { mutableStateOf(!isConfigured) }
+    var input by remember { mutableStateOf("") }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = "Anthropic API key",
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        if (isConfigured && !editing) {
+            Text("✓", color = Color(0xFF2E7D32), style = MaterialTheme.typography.titleLarge)
+        } else if (!isConfigured) {
+            Text("Required", color = Color(0xFFE65100), style = MaterialTheme.typography.bodySmall)
+        }
+    }
+
+    if (editing || !isConfigured) {
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = input,
+            onValueChange = { input = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("sk-ant-api03-...") },
+            visualTransformation = PasswordVisualTransformation(),
+            singleLine = true,
+        )
+        Spacer(Modifier.height(8.dp))
+        Button(
+            onClick = {
+                if (input.isNotBlank()) {
+                    onSave(input)
+                    editing = false
+                    input = ""
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Save key") }
+    } else {
+        TextButton(onClick = { editing = true }) { Text("Change key") }
     }
 }
 
