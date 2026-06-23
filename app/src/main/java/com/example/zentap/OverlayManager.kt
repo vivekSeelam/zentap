@@ -1,8 +1,10 @@
 package com.example.zentap
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.net.Uri
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.view.ContextThemeWrapper
@@ -31,6 +33,9 @@ class OverlayManager(private val context: Context) {
 
     // Conversation history for the current overlay session
     private val history = mutableListOf<ChatMessage>()
+
+    // Tracks which intervention to show next; persists across overlay shows for variety
+    private var redirectCount = 0
 
     fun isShowing() = overlayView != null
 
@@ -73,19 +78,26 @@ class OverlayManager(private val context: Context) {
                 when (response.decision) {
                     "grant" -> {
                         addBubble(layoutMessages, scrollChat, response.reply, isUser = false)
-                        // Brief pause so the user can read the grant message before the overlay closes
+                        val userReason = history.lastOrNull { it.role == "user" }?.content?.take(80) ?: ""
+                        AccessLogger.log(context, AccessLog(System.currentTimeMillis(), true, response.minutes, userReason))
                         kotlinx.coroutines.delay(1_200)
                         hide()
                         onGrant(response.minutes)
                     }
                     "redirect" -> {
-                        // Show the rejection in chat first, then transition to reflection screen
                         addBubble(layoutMessages, scrollChat, response.reply, isUser = false)
+                        val userReason = history.lastOrNull { it.role == "user" }?.content?.take(80) ?: ""
                         kotlinx.coroutines.delay(1_500)
                         showReflect(
                             message      = response.reply,
-                            onSkip       = { hide(); onNotNow() },
-                            onOpenAnyway = { hide(); onGrant(5) }
+                            onSkip       = {
+                                AccessLogger.log(context, AccessLog(System.currentTimeMillis(), false, 0, userReason))
+                                hide(); onNotNow()
+                            },
+                            onOpenAnyway = {
+                                AccessLogger.log(context, AccessLog(System.currentTimeMillis(), true, 5, "Opened anyway after redirect"))
+                                hide(); onGrant(5)
+                            }
                         )
                     }
                     else -> {
@@ -97,6 +109,7 @@ class OverlayManager(private val context: Context) {
         }
 
         view.findViewById<TextView>(R.id.tv_not_now).setOnClickListener {
+            AccessLogger.log(context, AccessLog(System.currentTimeMillis(), false, 0, "Skipped without engaging"))
             hide()
             onNotNow()
         }
@@ -111,13 +124,55 @@ class OverlayManager(private val context: Context) {
             overlayView = null
         }
 
+        val intervention = nextIntervention()
+        redirectCount++
+
         val view = inflate(R.layout.overlay_reflect)
         view.findViewById<TextView>(R.id.tv_reflect_message).text = message
+        view.findViewById<TextView>(R.id.tv_intervention_label).text = intervention.label
+        view.findViewById<TextView>(R.id.tv_intervention_body).text = intervention.body
+
+        val btnAction = view.findViewById<Button>(R.id.btn_intervention_action)
+        if (intervention.url != null) {
+            btnAction.visibility = View.VISIBLE
+            btnAction.text = "▶  Open on YouTube"
+            btnAction.setOnClickListener {
+                AccessLogger.log(context, AccessLog(System.currentTimeMillis(), false, 0, "Redirected to: ${intervention.body.take(60)}"))
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(intervention.url)).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
+                hide()
+            }
+        }
+
         view.findViewById<Button>(R.id.btn_skip).setOnClickListener { onSkip() }
         view.findViewById<TextView>(R.id.tv_open_anyway).setOnClickListener { onOpenAnyway() }
 
         windowManager.addView(view, buildParams())
         overlayView = view
+    }
+
+    private data class InterventionContent(val label: String, val body: String, val url: String?)
+
+    private fun nextIntervention(): InterventionContent {
+        val categoryIndex = redirectCount / 3
+        return when (redirectCount % 3) {
+            0 -> {
+                val items = InterventionData.reflectionQuestions
+                InterventionContent("💭  Reflect", items[categoryIndex % items.size], null)
+            }
+            1 -> {
+                val items = InterventionData.youtubeVideos
+                val video = items[categoryIndex % items.size]
+                InterventionContent("▶  Watch a TED Talk", video.title, video.url)
+            }
+            else -> {
+                val items = InterventionData.physicalNudges
+                val nudge = items[categoryIndex % items.size]
+                InterventionContent("🏃  ${nudge.title}", nudge.instruction, null)
+            }
+        }
     }
 
     fun hide() {

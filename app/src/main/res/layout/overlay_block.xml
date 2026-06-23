@@ -77,12 +77,12 @@
     <!-- Escape hatch -->
     <TextView
         android:id="@+id/tv_not_now"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:padding="12dp"
+        android:gravity="center"
+        android:padding="18dp"
         android:text="Just go home"
-        android:textColor="#555577"
-        android:textSize="13sp" />
+        android:textColor="#7777AA"
+        android:textSize="17sp" />
 
 </LinearLayout>

@@ -42,6 +42,9 @@ class MainActivity : ComponentActivity() {
                     },
                     onGrantAccessibility = {
                         startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                    },
+                    onViewLog = {
+                        startActivity(Intent(this, LogActivity::class.java))
                     }
                 )
             }
@@ -85,6 +88,7 @@ private fun SetupScreen(
     accessibilityEnabled: Boolean,
     onGrantOverlay: () -> Unit,
     onGrantAccessibility: () -> Unit,
+    onViewLog: () -> Unit,
 ) {
     val allGranted = canDrawOverlays && accessibilityEnabled
 
@@ -126,6 +130,11 @@ private fun SetupScreen(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary,
                 )
+            }
+
+            Spacer(Modifier.height(32.dp))
+            TextButton(onClick = onViewLog) {
+                Text("View access log →")
             }
         }
     }

@@ -29,6 +29,12 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".LogActivity"
+            android:exported="false"
+            android:label="Access Log"
+            android:theme="@style/Theme.Zentap" />
+
         <service
             android:name=".GuardAccessibilityService"
             android:exported="true"

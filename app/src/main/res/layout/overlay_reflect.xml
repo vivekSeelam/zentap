@@ -5,33 +5,64 @@
     android:background="#1A2744">
 
     <LinearLayout
-        android:layout_width="300dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:orientation="vertical"
-        android:padding="32dp">
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="32dp">
 
+        <!-- Guardian Mom's rejection message -->
         <TextView
             android:id="@+id/tv_reflect_message"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="24dp"
             android:gravity="center"
-            android:textColor="#FFFFFF"
-            android:textSize="19sp"
+            android:layout_marginBottom="24dp"
+            android:textColor="#7788AA"
+            android:textSize="15sp"
             android:textStyle="italic" />
 
-        <TextView
-            android:layout_width="wrap_content"
+        <!-- Intervention card — content set programmatically from InterventionData -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="36dp"
-            android:gravity="center"
-            android:text="Close your eyes.\nTake three slow breaths.\nWhat would you rather be doing?"
-            android:textColor="#B0BEC5"
-            android:textSize="15sp" />
+            android:background="@drawable/bg_intervention_card"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:layout_marginBottom="28dp">
 
+            <!-- Category label, e.g. "💭  REFLECT" -->
+            <TextView
+                android:id="@+id/tv_intervention_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:textAllCaps="true"
+                android:textColor="#A78BFA"
+                android:textSize="11sp"
+                android:letterSpacing="0.12" />
+
+            <!-- Main content: question / video title / nudge instruction -->
+            <TextView
+                android:id="@+id/tv_intervention_body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingMultiplier="1.45"
+                android:textColor="#EEEEFF"
+                android:textSize="17sp" />
+
+            <!-- Only visible for YouTube interventions -->
+            <Button
+                android:id="@+id/btn_intervention_action"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <!-- Skip Instagram entirely -->
         <Button
             android:id="@+id/btn_skip"
             android:layout_width="wrap_content"
@@ -40,6 +71,7 @@
             android:paddingHorizontal="32dp"
             android:text="I'll skip Instagram" />
 
+        <!-- Escape hatch — grants 5 min anyway -->
         <TextView
             android:id="@+id/tv_open_anyway"
             android:layout_width="wrap_content"
