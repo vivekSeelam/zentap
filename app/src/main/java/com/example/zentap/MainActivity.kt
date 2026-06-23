@@ -159,6 +159,7 @@ private fun SetupScreen(
 private fun ApiKeySection(isConfigured: Boolean, onSave: (String) -> Unit) {
     var editing by remember { mutableStateOf(!isConfigured) }
     var input by remember { mutableStateOf("") }
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -178,11 +179,21 @@ private fun ApiKeySection(isConfigured: Boolean, onSave: (String) -> Unit) {
 
     if (editing || !isConfigured) {
         Spacer(Modifier.height(8.dp))
+        // Takes them straight to the Anthropic Console key page
+        OutlinedButton(
+            onClick = {
+                context.startActivity(
+                    Intent(Intent.ACTION_VIEW, Uri.parse("https://console.anthropic.com/settings/keys"))
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Get your API key →") }
+        Spacer(Modifier.height(8.dp))
         OutlinedTextField(
             value = input,
             onValueChange = { input = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("sk-ant-api03-...") },
+            label = { Text("Paste key here  (sk-ant-api03-...)") },
             visualTransformation = PasswordVisualTransformation(),
             singleLine = true,
         )
