@@ -124,7 +124,7 @@ object AnthropicClient {
 
         } catch (e: Exception) {
             Log.e("AnthropicClient", "API call failed", e)
-            GuardDecision("grant", 5, "Ugh, my brain glitched. Fine, go in. 5 minutes only!")
+            GuardDecision("pending", 0, "My brain had a moment 🙃 Try sending that again?")
         }
     }
 }
