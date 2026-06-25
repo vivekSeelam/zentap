@@ -7,6 +7,20 @@
     <!-- Required for the Anthropic API call -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Required on Android 11+ to check which of these apps are installed -->
+    <queries>
+        <package android:name="com.instagram.android" />
+        <package android:name="com.facebook.katana" />
+        <package android:name="com.reddit.frontpage" />
+        <package android:name="com.google.android.youtube" />
+        <package android:name="com.zhiliaoapp.musically" />
+        <package android:name="com.twitter.android" />
+        <package android:name="com.linkedin.android" />
+        <package android:name="com.snapchat.android" />
+        <package android:name="com.pinterest" />
+        <package android:name="com.instagram.barcelona" />
+    </queries>
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
