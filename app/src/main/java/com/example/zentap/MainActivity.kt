@@ -55,6 +55,9 @@ class MainActivity : ComponentActivity() {
                     },
                     onViewLog = {
                         startActivity(Intent(this, LogActivity::class.java))
+                    },
+                    onManageApps = {
+                        startActivity(Intent(this, GuardedAppsActivity::class.java))
                     }
                 )
             }
@@ -102,6 +105,7 @@ private fun SetupScreen(
     onGrantAccessibility: () -> Unit,
     onSaveApiKey: (String) -> Unit,
     onViewLog: () -> Unit,
+    onManageApps: () -> Unit,
 ) {
     val allReady = canDrawOverlays && accessibilityEnabled && apiKeyConfigured
 
@@ -148,6 +152,9 @@ private fun SetupScreen(
             }
 
             Spacer(Modifier.height(32.dp))
+            TextButton(onClick = onManageApps) {
+                Text("Choose apps to guard →")
+            }
             TextButton(onClick = onViewLog) {
                 Text("View access log →")
             }

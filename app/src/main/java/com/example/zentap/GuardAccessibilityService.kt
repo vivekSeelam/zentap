@@ -11,18 +11,17 @@ class GuardAccessibilityService : AccessibilityService() {
     private val handler = Handler(Looper.getMainLooper())
 
     private var sessionGrantedUntilMs = 0L
+    private var sessionGrantedPackage: String? = null
 
-    // Updated on every window-state event (excluding system UI packages) so we know
-    // what's actually in the foreground when the re-block timer fires.
     private var lastKnownForegroundPackage: String? = null
-
-    // Packages whose window events don't represent real app foreground changes
     private val systemPackages = mutableSetOf("com.android.systemui", "android")
 
     private val reblockRunnable = Runnable {
         sessionGrantedUntilMs = 0L
-        if (lastKnownForegroundPackage == GUARDED_PACKAGE && !overlayManager.isShowing()) {
-            showOverlay()
+        sessionGrantedPackage = null
+        val pkg = lastKnownForegroundPackage ?: return@Runnable
+        if (GuardedAppsStore.isGuarded(this, pkg) && !overlayManager.isShowing()) {
+            showOverlay(pkg)
         }
     }
 
@@ -39,9 +38,10 @@ class GuardAccessibilityService : AccessibilityService() {
             lastKnownForegroundPackage = pkg
         }
 
-        if (pkg == GUARDED_PACKAGE && !overlayManager.isShowing()) {
-            val sessionActive = System.currentTimeMillis() < sessionGrantedUntilMs
-            if (!sessionActive) showOverlay()
+        if (GuardedAppsStore.isGuarded(this, pkg) && !overlayManager.isShowing()) {
+            val sessionActive = pkg == sessionGrantedPackage &&
+                System.currentTimeMillis() < sessionGrantedUntilMs
+            if (!sessionActive) showOverlay(pkg)
         }
     }
 
@@ -53,23 +53,16 @@ class GuardAccessibilityService : AccessibilityService() {
         if (::overlayManager.isInitialized) overlayManager.hide()
     }
 
-    private fun showOverlay() {
+    private fun showOverlay(forPackage: String) {
         overlayManager.show(
             onGrant = { minutes ->
-                // AI-determined grant duration (5–15 min), then re-block
                 val ms = minutes * 60 * 1_000L
                 sessionGrantedUntilMs = System.currentTimeMillis() + ms
+                sessionGrantedPackage = forPackage
                 handler.removeCallbacks(reblockRunnable)
                 handler.postDelayed(reblockRunnable, ms)
             },
-            onNotNow = {
-                // User tapped "Not now" — send them home; no timer started
-                performGlobalAction(GLOBAL_ACTION_HOME)
-            }
+            onNotNow = { performGlobalAction(GLOBAL_ACTION_HOME) }
         )
-    }
-
-    companion object {
-        const val GUARDED_PACKAGE = "com.instagram.android"
     }
 }

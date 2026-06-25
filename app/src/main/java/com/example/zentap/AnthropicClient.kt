@@ -60,9 +60,9 @@ object AnthropicClient {
 
     // Opening lines shown instantly — no API call needed for the first message
     val OPENING_LINES = listOf(
-        "Baby, Instagram AGAIN? 😩 Okay give me one good reason and I'll think about it.",
+        "Baby, this app AGAIN? 😩 Okay give me one good reason and I'll think about it.",
         "Oh sweetie, we're doing this dance again huh? Tell mama what's SO important.",
-        "Instagram? Already? What happened to 'just 5 minutes' last time? 👀 Convince me.",
+        "Already? What happened to 'just 5 minutes' last time? 👀 Convince me.",
         "Oh no no no. You don't get in for free anymore. What's the reason this time, love? 🤨",
         "Honey I love you but your thumbs are on thin ice. What do you actually need in there?",
     )
