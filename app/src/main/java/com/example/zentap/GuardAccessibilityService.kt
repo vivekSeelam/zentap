@@ -31,8 +31,14 @@ class GuardAccessibilityService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
-        if (event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
-        val pkg = event.packageName?.toString() ?: return
+        val pkg: String = when (event.eventType) {
+            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ->
+                event.packageName?.toString() ?: return
+            AccessibilityEvent.TYPE_WINDOWS_CHANGED ->
+                // TYPE_WINDOWS_CHANGED doesn't carry packageName — ask the active window
+                rootInActiveWindow?.packageName?.toString() ?: return
+            else -> return
+        }
 
         if (pkg !in systemPackages) {
             lastKnownForegroundPackage = pkg
@@ -54,7 +60,10 @@ class GuardAccessibilityService : AccessibilityService() {
     }
 
     private fun showOverlay(forPackage: String) {
+        val appName = GuardedAppsStore.ALL_APPS
+            .firstOrNull { it.packageName == forPackage }?.displayName ?: forPackage
         overlayManager.show(
+            appName = appName,
             onGrant = { minutes ->
                 val ms = minutes * 60 * 1_000L
                 sessionGrantedUntilMs = System.currentTimeMillis() + ms

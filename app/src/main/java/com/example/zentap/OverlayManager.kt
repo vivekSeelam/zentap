@@ -39,7 +39,7 @@ class OverlayManager(private val context: Context) {
 
     fun isShowing() = overlayView != null
 
-    fun show(onGrant: (minutes: Int) -> Unit, onNotNow: () -> Unit) {
+    fun show(appName: String, onGrant: (minutes: Int) -> Unit, onNotNow: () -> Unit) {
         if (isShowing()) return
 
         history.clear()
@@ -53,7 +53,7 @@ class OverlayManager(private val context: Context) {
         val btnSend       = view.findViewById<Button>(R.id.btn_send)
 
         // Guardian Mom opens the conversation
-        addBubble(layoutMessages, scrollChat, AnthropicClient.OPENING_LINES.random(), isUser = false)
+        addBubble(layoutMessages, scrollChat, AnthropicClient.openingLines(appName).random(), isUser = false)
 
         btnSend.setOnClickListener {
             val text = etReason.text.toString().trim()
@@ -68,7 +68,7 @@ class OverlayManager(private val context: Context) {
             pbLoading.visibility = View.VISIBLE
 
             scope.launch {
-                val response = AnthropicClient.chat(context, history)
+                val response = AnthropicClient.chat(history, appName)
                 // Add assistant reply to history so subsequent turns have full context
                 history.add(ChatMessage("assistant", response.reply))
 
