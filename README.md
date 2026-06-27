@@ -1,12 +1,14 @@
 # Zentap
 
-A personal Android guardian app that intercepts doom-scrolling. When you open Instagram, a full-screen overlay fires and makes you justify why you're opening it. An AI (Guardian Mom) decides whether to let you in, redirect you to something better, or send you home.
+A personal Android guardian app that intercepts doom-scrolling. When you open a guarded app, a full-screen overlay fires and makes you justify why you're opening it. An AI (Guardian Mom) decides whether to let you in, redirect you to something better, or send you home.
+
+Supports Instagram, Facebook, Reddit, YouTube, TikTok, X (Twitter), LinkedIn, Snapchat, Pinterest, and Threads — you pick which ones to guard.
 
 ---
 
 ## How it works
 
-- You open Instagram → Guardian Mom appears and asks for a reason
+- You open a guarded app → Guardian Mom appears and asks for a reason
 - You negotiate. Vague answers get roasted and redirected to a TED talk, a reflection question, or a physical nudge
 - Specific, honest reasons get you in for a set amount of time
 - When the time is up, the overlay fires again
@@ -52,7 +54,7 @@ Android 13 and above blocks sideloaded apps from accessing sensitive permissions
 
 ### Step 5 — Grant permissions inside the Zentap app
 
-Open Zentap. You will see three setup steps:
+Open Zentap. You will see two setup steps:
 
 #### Draw over other apps
 1. Tap **Grant** — this opens Settings
@@ -65,22 +67,19 @@ Open Zentap. You will see three setup steps:
 3. Tap **Allow** on the confirmation prompt
 4. Go back to the Zentap app
 
-#### Anthropic API key
-Zentap uses an AI model to evaluate your reasons. You need your own free API key — it takes about 2 minutes to get one.
-
-1. Tap **Get your API key →** — this opens the Anthropic Console in your browser
-2. Create a free account at [console.anthropic.com](https://console.anthropic.com)
-3. Go to **Settings → API Keys → Create Key**
-4. Copy the key (it starts with `sk-ant-api03-...`)
-5. Come back to Zentap, paste the key into the field, tap **Save key**
-
-> Your key is stored only on your device. It is never shared with anyone.
+Once both show a green ✓, you're ready.
 
 ---
 
-### Step 6 — Test it
+### Step 6 — Choose which apps to guard
 
-Open Instagram. The Guardian Mom overlay should appear immediately asking for a reason.
+Tap **Choose apps to guard →** at the bottom of the setup screen. Toggle on any apps you want Zentap to intercept. Instagram is on by default.
+
+---
+
+### Step 7 — Test it
+
+Open one of your guarded apps. The Guardian Mom overlay should appear immediately asking for a reason.
 
 ---
 
@@ -93,14 +92,7 @@ Android won't let you uninstall an app with an active accessibility service. Dis
 
 ---
 
-## About the API key and cost
-
-Each conversation with the AI costs a fraction of a cent. At roughly 20 Instagram open attempts per day, expect around **$0.03/day (~$1/month)** on your Anthropic account. Anthropic offers free credits when you sign up.
-
----
-
 ## Privacy
 
 - The only data sent externally is the reason you type, which goes to Anthropic's API to generate a response
 - No usage data, analytics, or telemetry is collected
-- Your API key never leaves your device
