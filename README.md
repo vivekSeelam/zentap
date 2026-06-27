@@ -19,7 +19,7 @@ Supports Instagram, Facebook, Reddit, YouTube, TikTok, X (Twitter), LinkedIn, Sn
 
 ### Step 1 — Download the APK
 
-Download `app-debug.apk` from the [Releases](../../releases) page.
+Download `zentap_debug.apk` from the [Releases](../../releases) page.
 
 ---
 
